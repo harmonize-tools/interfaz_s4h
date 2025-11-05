@@ -32,7 +32,7 @@ st.session_state.source_data = st.selectbox(
 def handle_extraction(extractor, source_type):
     try:
         with st.status(f"🔄 Extracting data from {source_type}...", expanded=True) as status:
-            result = extractor.extract()
+            result = extractor.s4h_extract()
 
             if result:
                 status.update(label="✅ Data extraction completed successfully!", state="complete")

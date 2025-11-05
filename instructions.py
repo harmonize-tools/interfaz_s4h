@@ -5,25 +5,22 @@ INSTRUCTIONS = {
 ## Getting Started
 1. Review the workflow diagram to understand the process
 2. Check available datasets in the system
-3. Make sure you have your Groq API key ready
-4. Use the sidebar stepper to track your progress
+
 
 ## Available Features
 - Data Loading from multiple sources
 - Data Filtering and cleaning
 - Record stacking and combining
 - Data aggregation and merging
-- AI-powered chat analysis
 
 ## Available Datasets
 - COVID-19 Colombian Data
 - Colombian People Census Data
 - Custom datasets (upload your own)
     """,
-    
+
     "data_loading": """
 # Data Loading Instructions
-
 ## Choose Your Data Source:
 1. URL Source:
    - Enter website URL
@@ -47,7 +44,7 @@ INSTRUCTIONS = {
 - Use appropriate file extensions
 - Verify data preview before proceeding
     """,
-    
+
     "data_filtering": """
 # Data Filtering Instructions
 
@@ -71,7 +68,7 @@ INSTRUCTIONS = {
 - Review column stats before filtering
 - Keep track of removed columns
     """,
-    
+
     "add_records": """
 # Add Records Instructions
 
@@ -98,33 +95,38 @@ INSTRUCTIONS = {
 - Use meaningful identifiers
 - Back up data before stacking
     """,
-    
+
     "aggregation_merge": """
-# Aggregation & Merge Instructions
+# Data Harmonization, Grouping, and Joining Instructions
 
-## Aggregation Process:
-1. Select database to aggregate
-2. Choose groupby column
-3. Set aggregation functions:
-   - Mode
-   - Mean
-   - Sum
-   - Min/Max
-   - Multiple functions
+## Vertical Merge
+1. Adjust the similarity threshold using the \(`Similarity Threshold`\) slider to control column matching.
+2. Click **Run Vertical Merge** to combine the loaded DataFrames.
+3. Review the result and preview the merged data.
 
-## Merging Process:
-1. Ensure 2+ databases loaded
-2. Select merge columns
-3. Choose merge type
-4. Execute merge
-5. Review results
+## Dictionary Grouping and Translation
+1. Expand **Dictionary Grouping Options**.
+2. Select extra columns if needed.
+3. Upload a model if you want to classify.
+4. Click **Run Dictionary Grouping** to translate and group the dictionary.
+5. View the preview of the translated and classified dictionary.
+
+## Data Selector
+1. Expand **Data Joining Options** under "Data Selector".
+2. Select categories, key column, and values to filter.
+3. Click **Run Data Selector** to filter data based on your criteria.
+
+## Data Joining
+1. Expand **Data Joining Options** under "Data Joining".
+2. Select the main and auxiliary join columns.
+3. Execute the join as needed.
 
 ## Tips:
-- Choose appropriate aggregations
-- Verify merge keys are unique
-- Check for data loss
+- Adjust the similarity threshold to improve harmonization.
+- Check column compatibility before merging.
+- Use the preview to validate results.
+- If an error occurs, review the messages to identify the issue.
     """,
-    
     "chat": """
 # Chat with Data Instructions
 
@@ -145,7 +147,7 @@ INSTRUCTIONS = {
 - Review data structure first
 - Check API key if not working
     """,
-    
+
     "common_issues": """
 # Common Issues and Solutions
 
@@ -169,10 +171,6 @@ INSTRUCTIONS = {
    - Look for duplicate keys
    - Ensure enough memory
 
-5. Chat Issues:
-   - Verify API key
-   - Check connection
-   - Simplify questions
     """
 }
 
