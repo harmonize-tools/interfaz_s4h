@@ -27,6 +27,32 @@ initialize_session_state()
 
 st.title("Dictionary Standardization 📖")
 
+# Beginner-friendly guide: simple, short, step-by-step
+with st.expander("Instructions", expanded=True):
+    st.markdown(
+        """
+        **What is a dictionary?**
+
+        A dictionary is a table that tells the program what each column in your data means.
+
+        **What does 'standardize' mean?**
+
+        It means we clean and rename the columns so they follow the project's rules. This makes different files behave the same way.
+
+        **Easy steps (like a recipe):**
+
+        1. Choose a file (CSV or Excel) using the uploader below.
+        2. Click the "Standardize Dictionary" button. The app will try to tidy column names and types.
+        3. If your data is a fixed-width file, turn on "Is this a fixed width file?" to see column names and positions.
+        4. Download the standardized dictionary using the button in "Download Options".
+
+        **If something goes wrong:**
+
+        - Make sure the file is CSV or XLSX and that the first row contains column names.
+        - If the app shows an error while parsing fixed-width, the dictionary might miss width information or have unexpected values.
+        """
+    )
+
 # File uploader
 uploaded_file = st.file_uploader("Choose a CSV or Excel file", type=["csv", "xlsx"])
 

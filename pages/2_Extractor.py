@@ -3,7 +3,6 @@ from pathlib import Path
 import streamlit as st
 import os
 import tempfile
-from instructions import INSTRUCTIONS
 from socio4health import Extractor
 
 from utils import initialize_session_state, show_session_state, add_logo
@@ -15,8 +14,38 @@ initialize_session_state()
 
 st.title("Data Extraction 📥")
 
-with st.expander("ℹ️ Instructions", expanded=False):
-    st.markdown(INSTRUCTIONS["data_loading"])
+# Beginner-friendly guide: simple, short, step-by-step
+with st.expander("Instructions", expanded=True):
+    st.markdown(
+        """
+        **What is data extraction?**
+
+        It means getting datasets from the web or from files on your computer and putting them into the app so you can work with them.
+
+        **Quick plain-language steps:**
+
+        1. Choose where your data is from the dropdown: Internet (URL) or Local file.
+        2. If you choose URL: paste the web address, choose file types, and click "Extract Data from URL".
+        3. If you choose Local file: upload one or more files, pick the extensions to look for, then click "Process Local Files".
+        4. After extraction, the datasets will appear in your workspace (check the session state shown at the bottom).
+
+        **Notes on common options:**
+
+        - "File extensions to look for" tells the extractor which file types (for example `.csv`, `.zip`) it should search for and download.
+        - "CSV Options" lets you set the separator and file encoding if your CSVs use a custom format.
+        - Turn on "Is a fixed width file?" if your dataset is stored as fixed-width text (not CSV). Use the dictionary page first to standardize and provide column widths.
+
+        **If something goes wrong:**
+
+        - Make sure the URL is correct and public (not behind a login) when using the Internet option.
+        - If Local files fail, check that the file types are allowed and the file is not corrupted.
+        - Try the sample example options ("Example Brazil Census 2010" or "Example Colombia Housing Survey 2021") to test the flow.
+
+        This short guide uses simple language so anyone can follow it — even a beginner.
+        """
+    )
+
+
 
 if 'state' not in st.session_state:
     st.session_state.state = "Select Source"

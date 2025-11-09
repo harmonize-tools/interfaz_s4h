@@ -41,21 +41,6 @@ def mode(series):
     else:
         return mode.iloc[0]
 
-def mermaid(code: str) -> None:
-    html(
-        f"""
-        <pre class="mermaid">
-            {code}
-        </pre>
-
-        <script type="module">
-            import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-            mermaid.initialize({{ startOnLoad: true }});
-        </script>
-        """,
-        height= 250,
-    )
-
 def add_logo():
     theme = st_theme()
     if theme is not None and theme.get('base') == 'dark':

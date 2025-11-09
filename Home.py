@@ -1,93 +1,79 @@
-import streamlit as st
-from utils import initialize_session_state, mermaid, add_logo
-import extra_streamlit_components as stx
-from instructions import INSTRUCTIONS
+"""Home page for the socio4health Streamlit interface.
 
-st.set_page_config(page_title="Socio4Health Data Analysis", page_icon="assets/s4h.ico", layout="wide")
-add_logo()
-
-# Initialize session state
-initialize_session_state()
-
-with st.expander("ℹ️ Instructions", expanded=False):
-    st.markdown(INSTRUCTIONS["home_page"])
-
-# Sidebar
-st.sidebar.markdown('Developed by Harmonize team')
-st.sidebar.markdown('<a href="mailto:d.irrenotorres@uniandes.edu.co">:email: Contact Us</a>', unsafe_allow_html=True)
-
-# Main content
-st.title("Socio4Health Data Analysis 🏘️👥🏥")
-
-st.markdown("""
-Welcome to the Socio4Health Data Analysis Pipeline! This powerful tool empowers you to explore, analyze, and gain insights from sociodemographic datasets.
-""")
-
-# Workflow diagram
-st.header("🔀 Workflow Diagram")
-
-# Use Mermaid diagram for Streamlit 1.10.0 and newer
-workflow = """
-graph LR
-    A[Dictionary Standardization] --> B[Extract Data]
-    B --> C[Harmonize Data]
-    C --> D[Filter Data]
-    C --> E[Vertical & Horizontal Data merge] 
+This page presents the package overview, features, and target users.
+Replaced previous content with a clear, emoji-free description.
 """
-mermaid(workflow)
 
-# Getting Started Guide
-st.header("🚀 Getting Started")
-col1, col2 = st.columns(2)
+import streamlit as st
 
-with col1:
-    st.subheader("1. Dictionary Standardization")
-    st.markdown("""
-    - Navigate to the 'Dictionary Standardization' page
-    - Drag and drop your dictionary file or browse files (CSV or Excel)
-    - Click 'Standardize Dictionary' to process the file
-    - If working with fixed-width files, enable the FWF option and provide column names/specs
-    - Download the standardized dictionary for future use as CSV 
-    """)
 
-    st.subheader("2. Extract Data")
-    st.markdown("""
-    - Choice your data source (URL, local file, example database)
-    - Enter necessary parameters (e.g., URL, keywords, file extensions, separator, etc.)
-    - Process the data 
-    """)
+st.set_page_config(page_title="socio4health", page_icon=None, layout="wide")
 
-with col2:
-    st.subheader("3. Harmonize Data")
-    st.markdown("""
-    - Visit the 'Harmonizer' page
 
-    """)
+def main():
+    st.title("socio4health")
 
-# Tips and Notes
-st.header("💡 Tips")
-tips = st.container()
+    st.header("Introduction")
+    st.markdown(
+        """
+        The Python package socio4health is an extraction, transformation, and loading tool
+        designed to simplify the process of collecting and merging data from multiple
+        sources into a unified database structure.
+        """
+    )
 
-with tips:
-    tip1, tip2, tip3 = st.columns(3)
+    st.header("Features")
 
-    with tip1:
-        st.info("**Data Types**: The app supports various data formats including CSV, Excel, and databases.")
+    st.subheader("Extraction")
+    st.markdown(
+        """
+        - Retrieve data from online sources using web scraping and from local files.
+        - Support for multiple file formats: .csv, .xlsx, .xls, .txt, .sav, and compressed files.
+        """
+    )
 
-    with tip2:
-        st.success("**Save Your Work**: You can download processed data at various stages of the analysis.")
+    st.subheader("Transformation")
+    st.markdown(
+        """
+        - Consolidate extracted data into Dask DataFrames for scalable processing.
+        - Optimize processing for large files via parallelism and efficient data structures.
+        - Manage inconsistencies and discrepancies with anomaly-detection strategies.
+        """
+    )
 
-# Dataset Information
-st.header("📚 Available Datasets")
-st.markdown("""
-The following datasets are currently available for analysis:
-- COVID-19 Colombian Data
-- Colombian People Census Data
-- Custom datasets (upload your own)
+    st.subheader("Load")
+    st.markdown(
+        """
+        - Consolidate transformed data into a cohesive database or dataset ready for analysis.
+        - Provide options to export to common formats or write directly to supported databases.
+        """
+    )
 
-Explore these datasets to uncover valuable insights about public health and demographics.
-""")
+    st.subheader("Query")
+    st.markdown(
+        """
+        - Run precise queries and apply transformations to extract the subsets you need.
+        - Support natural-language style queries or programmatic filters to simplify access.
+        """
+    )
 
-# Footer
-st.markdown("---")
-st.markdown("© 2025 Socio4Health. All rights reserved.")
+    st.header("Who should use socio4health?")
+    st.markdown(
+        """
+        socio4health is ideal for data analysts, scientists, and researchers who frequently
+        handle large volumes of data from varied sources and want a streamlined way to
+        consolidate, query, and visualize their data. It is also useful for developers building
+        integrations of disparate datasets, and for business intelligence professionals who
+        need to generate actionable insights.
+
+        In short, anyone looking to simplify data workflows from extraction to visualization
+        and leverage AI-assisted querying will benefit from socio4health.
+        """
+    )
+
+    st.markdown("---")
+    st.markdown("© 2025 socio4health")
+
+
+if __name__ == "__main__":
+    main()

@@ -6,7 +6,6 @@ import pandas as pd
 from socio4health.utils import harmonizer_utils
 
 from utils import mode, initialize_session_state, show_session_state, add_logo
-from instructions import INSTRUCTIONS
 from socio4health import Harmonizer  # asumiendo que tu clase se llama así
 
 st.set_page_config(page_title="Harmonizer", page_icon="assets/s4h.ico", layout="wide")
@@ -16,8 +15,36 @@ initialize_session_state()
 
 st.title("Harmonizer 🎵")
 
-with st.expander("ℹ️ Instructions", expanded=False):
-    st.markdown(INSTRUCTIONS["aggregation_merge"])
+# Beginner-friendly deep guide with image placeholder
+with st.expander("Deep guide (easy read for beginners)", expanded=True):
+    st.markdown(
+        """
+        This page helps you make different datasets speak the same language.
+
+        Short overview of the main sections below. Read this first if you are new.
+
+        - Vertical Merge: Combine datasets that have similar columns (one below the other). Use the similarity slider to decide how strict the matching should be.
+        - Dictionary Grouping: Automatically group and label variables from the dictionary using a machine learning model. Upload a model (zip) to this section.
+        - Data Selector: Filter your datasets by topic (category) and specific values so you only work with relevant rows.
+        - Data Joining: Combine datasets side-by-side using a common key column.
+
+        Quick tips:
+        1) Always standardize your dictionary first (use the Dictionary Standardization page).
+        2) Try higher similarity (closer to 1.0) when column names are already similar; lower it when names vary a lot.
+        3) Use the example datasets to practice before using your own files.
+
+        Image: a simple diagram helps a lot. If you place a file named `assets/harmonizer_diagram.png` in the project, it will show below.
+        """
+    )
+
+    # Image placeholder: show the image if it exists, otherwise display a helpful note
+    from pathlib import Path
+    img_path = Path("assets/harmonizer_diagram.png")
+    if img_path.exists():
+        st.image(str(img_path), use_column_width=True, caption="Harmonizer overview")
+    else:
+        st.info("Add an explanatory diagram at 'assets/harmonizer_diagram.png' to show a visual overview here.")
+
 
 st.subheader("Vertical Merge")
 if not st.session_state.Data_Sources:
@@ -36,9 +63,51 @@ similarity_threshold = st.slider(
     min_value=0.0, max_value=1.0, value=0.9, step=0.05
 )
 
+nan_threshold = st.slider(
+    "NaN Threshold",
+    min_value=0.0, max_value=1.0, value=0.9, step=0.05
+)
+
 dfs = st.session_state.Data_Sources
 
 har.similarity_threshold = similarity_threshold
+har.nan_threshold = nan_threshold
+
+# Clean NaN columns tool
+st.subheader("Clean NaN Columns")
+with st.expander("Drop columns with many NaNs (options)", expanded=False):
+    st.markdown("Columns where the proportion of missing values is greater than the NaN Threshold will be dropped.")
+    use_sampling = st.checkbox("Use sampling for NaN detection (faster for large datasets)")
+    sample_frac = None
+    if use_sampling:
+        sample_frac = st.number_input("Sample fraction (0 < frac <= 1)", min_value=0.01, max_value=1.0, value=0.1, step=0.01)
+
+    if st.button("Drop NaN Columns"):
+        # apply settings
+        try:
+            har.sample_frac = sample_frac
+            # run on the session Data_Sources
+            with st.spinner("Cleaning columns with many NaNs..."):
+                dfs_in = st.session_state.Data_Sources
+                cleaned = har.drop_nan_columns(dfs_in)
+
+                # harmonizer returns either a DataFrame or list
+                if isinstance(cleaned, list):
+                    st.session_state.Data_Sources = cleaned
+                else:
+                    st.session_state.Data_Sources = [cleaned]
+
+                st.success("Dropped columns with many NaNs")
+                st.write("Preview of cleaned datasets:")
+                for i, df in enumerate(st.session_state.Data_Sources):
+                    try:
+                        st.write(f"DataFrame {i + 1} shape: {len(df)} rows, {len(df.columns)} columns")
+                        st.dataframe(df.head(5))
+                    except Exception:
+                        st.write(f"DataFrame {i + 1}: preview not available")
+
+        except Exception as e:
+            st.error(f"Error while dropping NaN columns: {e}")
 
 if st.button("Run Vertical Merge"):
     with st.spinner("Running vertical merge..."):
@@ -62,25 +131,49 @@ with st.expander("Dictionary Grouping Options", expanded=False):
     extra_cols = st.multiselect("Extra Columns", options=options)
     har.extra_cols = extra_cols
 
-    model_file = st.file_uploader("Choose Model", type=["zip"])
+    st.markdown("**Model (for classification)**")
+    model_file = st.file_uploader("Upload model (zip with a model folder inside)", type=["zip"])
 
-    if st.button("Run Dictionary Grouping"):
+    # Button to extract/upload model and remember extracted path in session_state
+    if st.button("Upload & Extract Model"):
         if model_file is None:
-            st.error("Please upload a model file")
-            st.stop()
+            st.error("Please choose a model zip file to upload.")
+        else:
+            # Create models directory in project root and extract the zip
+            models_dir = Path("bert_model")
+            if models_dir.exists():
+                import shutil
+                shutil.rmtree(models_dir)
+            models_dir.mkdir(exist_ok=True)
 
-        # Create models directory in project root
-        models_dir = Path("bert_model")
-        if models_dir.exists():
-            import shutil
-            shutil.rmtree(models_dir)
-        models_dir.mkdir(exist_ok=True)
+            import zipfile
+            try:
+                with zipfile.ZipFile(model_file, 'r') as zip_ref:
+                    zip_ref.extractall(models_dir)
 
-        # Extract model files
-        import zipfile
-        with zipfile.ZipFile(model_file, 'r') as zip_ref:
-            zip_ref.extractall(models_dir)
+                # Determine actual model folder: if the zip contained a single top-level folder, use it.
+                children = [p for p in models_dir.iterdir()]
+                model_path = models_dir
+                if len(children) == 1 and children[0].is_dir():
+                    model_path = children[0]
 
+                st.session_state.bert_model_path = str(model_path)
+                st.success(f"Model extracted to {model_path}")
+                st.write("Model files:")
+                for p in model_path.rglob('*'):
+                    st.write('-', str(p.relative_to(model_path)))
+
+            except Exception as e:
+                st.error(f"Failed to extract model zip: {e}")
+
+    # Show currently extracted model path if any
+    if 'bert_model_path' in st.session_state:
+        st.info(f"Using model at: `{st.session_state.bert_model_path}`")
+
+    st.markdown("---")
+
+    # Separate action: Translate dictionary (no model required)
+    if st.button("Run Dictionary Translation"):
         with st.spinner("Running dictionary translation..."):
             try:
                 dic = st.session_state.standardized_dict
@@ -90,11 +183,20 @@ with st.expander("Dictionary Grouping Options", expanded=False):
                 har.dict_df = dic
                 st.session_state.standardized_dict = dic
 
-                # Do not preview translated dictionary to avoid exposing large intermediate data in the UI.
                 st.success("Dictionary translation completed")
 
             except Exception as e:
                 st.error(f"Error during dictionary translation: {e}")
+
+    st.markdown("---")
+
+    # Separate action: Classification (requires an extracted model)
+    if st.button("Run Dictionary Classification"):
+        if 'bert_model_path' not in st.session_state:
+            st.error("Please upload and extract a model first using 'Upload & Extract Model'.")
+            st.stop()
+
+        model_path = st.session_state.bert_model_path
 
         with st.spinner("Running dictionary classification..."):
             try:
@@ -106,9 +208,14 @@ with st.expander("Dictionary Grouping Options", expanded=False):
                     st.error(f"Missing required columns: {', '.join(missing_cols)}")
                     st.stop()
 
-                classified_dic = harmonizer_utils.s4h_classify_rows(dic, "question_en", "description_en", "possible_answers_en",
-                                        new_column_name="category",
-                                        MODEL_PATH="bert_model")
+                classified_dic = harmonizer_utils.s4h_classify_rows(
+                    dic,
+                    "question_en",
+                    "description_en",
+                    "possible_answers_en",
+                    new_column_name="category",
+                    MODEL_PATH=model_path
+                )
 
                 st.session_state.standardized_dict = classified_dic
 
@@ -126,7 +233,6 @@ with st.expander("Dictionary Grouping Options", expanded=False):
                         mime="text/csv",
                     )
                 except Exception:
-                    # If conversion to CSV fails (e.g., complex dtypes), fall back to Pandas string conversion
                     st.warning("Unable to generate CSV for download (unexpected dtype).")
 
             except Exception as e:
@@ -148,12 +254,24 @@ with st.expander("Data Joining Options", expanded=False):
     )
     # `st.multiselect` returns a list of selected categories; pass it directly.
     har.categories = category
-    har.key_col = st.selectbox("Column Selection", options=options, index=0)
-    har.key_val = st.text_input("Values (comma separated)").split(',')
+    # Allow null/none selection by adding a 'None' option
+    key_col_options = ["None"] + options
+    key_col_choice = st.selectbox("Column Selection (optional)", options=key_col_options, index=0)
+    har.key_col = None if key_col_choice == "None" else key_col_choice
+
+    key_val_input = st.text_input("Values (comma separated, optional)")
+    if key_val_input and key_val_input.strip():
+        har.key_val = [v.strip() for v in key_val_input.split(',') if v.strip()]
+    else:
+        har.key_val = []
 
     if st.button("Run Data Selector"):
-        if not har.categories or not har.key_col or not har.key_val:
-            st.error("Please select at least one category, one column, and provide values.")
+        if not har.categories:
+            st.error("Please select at least one category.")
+            st.stop()
+        # If a key column is provided, require at least one value
+        if har.key_col is not None and not har.key_val:
+            st.error("Please provide at least one value when a column is selected.")
             st.stop()
         with st.spinner("Running data selector..."):
             try:
@@ -173,10 +291,31 @@ with st.expander("Data Joining Options", expanded=False):
 
 st.subheader("Data Joining")
 with st.expander("Data Joining Options", expanded=False):
-    join_key = st.selectbox("Join Key", options=options, index=0)
-    aux_key = st.selectbox("Auxiliar Key", options=options)
-    har.join_key = join_key
-    har.aux_key = aux_key
+    # Allow join keys to be optional
+    join_key_options = ["None"] + options
+    join_key_choice = st.selectbox("Join Key", options=join_key_options, index=0)
+    aux_key_choice = st.selectbox("Auxiliar Key (optional)", options=join_key_options, index=0)
+
+    har.join_key = None if join_key_choice == "None" else join_key_choice
+    har.aux_key = None if aux_key_choice == "None" else aux_key_choice
+    if st.button("Run Data Joining"):
+        if not har.join_key:
+            st.error("Please select a join key.")
+            st.stop()
+        with st.spinner("Running data joining..."):
+            try:
+                dfs = st.session_state.Data_Sources
+                joined_dfs = har.s4h_join_data(dfs)
+                st.session_state.Data_Sources = joined_dfs
+
+                st.success("Data joining completed!")
+                st.write("Preview of joined data:")
+                for i, df in enumerate(joined_dfs):
+                    st.write(f"DataFrame {i + 1} shape: {len(df)} rows, {len(df.columns)} columns")
+                    st.dataframe(df.head(5))
+
+            except Exception as e:
+                st.error(f"Error during data joining: {e}")
 
 show_session_state()
 
