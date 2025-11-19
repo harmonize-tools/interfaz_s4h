@@ -42,8 +42,23 @@ with col1:
 
     samples = {
         "Show first loaded dataset": "# Access the first dataset in session (if available)\nif dataframes:\n    df = dataframes[0]\n    result = df.head()\n    print('Loaded dataframe with', len(df), 'rows and', len(df.columns), 'columns')\nelse:\n    print('No datasets loaded in session.')\n",
-        "Create demo dataframe": "# Create a small demo dataframe\ndf = pd.DataFrame({'x': range(10), 'y': [v*v for v in range(10)]})\nresult = df\nprint('Demo dataframe created')\n",
-        "Simple plot (save as image)": "# Create demo data and show a quick plot using pandas built-in plotting\ndf = pd.DataFrame({'x': np.linspace(0,10,50), 'y': np.sin(np.linspace(0,10,50))})\nresult = df\nprint('Created sine wave dataframe')\n",
+        "Simple plot": '''# Simple plot: distribution of a column from the first loaded dataset
+if dataframes:
+    df = dataframes[0]
+    # prefer P110D, otherwise first available column
+    col = 'P110D' if 'P110D' in df.columns else (df.columns[0] if len(df.columns) > 0 else None)
+    if col:
+        counts = df[col].fillna('Missing').astype(str).value_counts()
+        if hasattr(counts, 'compute'):
+            counts = counts.compute()
+        st.write('Distribution of ' + str(col) + ':')
+        st.bar_chart(counts)
+        result = counts.reset_index().rename(columns={'index': col, 0: 'count'})
+    else:
+        print('No columns found in the first loaded dataset')
+else:
+    print('No datasets loaded in session.')
+''',
     }
 
     sample_key = st.selectbox("Load sample", options=list(samples.keys()))
@@ -62,7 +77,7 @@ with col2:
 def make_safe_builtins():
     allowed = [
         'abs', 'min', 'max', 'sum', 'len', 'range', 'print', 'list', 'dict', 'set', 'tuple',
-        'float', 'int', 'str', 'bool', 'enumerate', 'zip', 'map', 'filter'
+        'float', 'int', 'str', 'bool', 'enumerate', 'zip', 'map', 'filter', 'hasattr', 'getattr'
     ]
     safe = {}
     for name in allowed:
