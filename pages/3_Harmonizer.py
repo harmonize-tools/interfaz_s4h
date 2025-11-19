@@ -178,8 +178,11 @@ with st.expander("Dictionary Grouping Options", expanded=False):
             try:
                 dic = st.session_state.standardized_dict
                 dic = harmonizer_utils.s4h_translate_column(dic, "question", language="en")
+                st.success("Questions translation completed")
                 dic = harmonizer_utils.s4h_translate_column(dic, "description", language="en")
+                st.success("Descriptions translation completed")
                 dic = harmonizer_utils.s4h_translate_column(dic, "possible_answers", language="en")
+                st.success("Possible answers translation completed")
                 har.dict_df = dic
                 st.session_state.standardized_dict = dic
 
@@ -289,33 +292,33 @@ with st.expander("Data Joining Options", expanded=False):
                 st.error(f"Error during data selection: {e}")
 
 
-st.subheader("Data Joining")
-with st.expander("Data Joining Options", expanded=False):
-    # Allow join keys to be optional
-    join_key_options = ["None"] + options
-    join_key_choice = st.selectbox("Join Key", options=join_key_options, index=0)
-    aux_key_choice = st.selectbox("Auxiliar Key (optional)", options=join_key_options, index=0)
+# st.subheader("Data Joining")
+# with st.expander("Data Joining Options", expanded=False):
+#     # Allow join keys to be optional
+#     join_key_options = ["None"] + options
+#     join_key_choice = st.selectbox("Join Key", options=join_key_options, index=0)
+#     aux_key_choice = st.selectbox("Auxiliar Key (optional)", options=join_key_options, index=0)
 
-    har.join_key = None if join_key_choice == "None" else join_key_choice
-    har.aux_key = None if aux_key_choice == "None" else aux_key_choice
-    if st.button("Run Data Joining"):
-        if not har.join_key:
-            st.error("Please select a join key.")
-            st.stop()
-        with st.spinner("Running data joining..."):
-            try:
-                dfs = st.session_state.Data_Sources
-                joined_dfs = har.s4h_join_data(dfs)
-                st.session_state.Data_Sources = joined_dfs
+#     har.join_key = None if join_key_choice == "None" else join_key_choice
+#     har.aux_key = None if aux_key_choice == "None" else aux_key_choice
+#     if st.button("Run Data Joining"):
+#         if not har.join_key:
+#             st.error("Please select a join key.")
+#             st.stop()
+#         with st.spinner("Running data joining..."):
+#             try:
+#                 dfs = st.session_state.Data_Sources
+#                 joined_dfs = har.s4h_join_data(dfs)
+#                 st.session_state.Data_Sources = joined_dfs
 
-                st.success("Data joining completed!")
-                st.write("Preview of joined data:")
-                for i, df in enumerate(joined_dfs):
-                    st.write(f"DataFrame {i + 1} shape: {len(df)} rows, {len(df.columns)} columns")
-                    st.dataframe(df.head(5))
+#                 st.success("Data joining completed!")
+#                 st.write("Preview of joined data:")
+#                 for i, df in enumerate(joined_dfs):
+#                     st.write(f"DataFrame {i + 1} shape: {len(df)} rows, {len(df.columns)} columns")
+#                     st.dataframe(df.head(5))
 
-            except Exception as e:
-                st.error(f"Error during data joining: {e}")
+#             except Exception as e:
+#                 st.error(f"Error during data joining: {e}")
 
 show_session_state()
 

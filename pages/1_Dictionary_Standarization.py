@@ -68,13 +68,17 @@ if raw_dic is not None:
         with st.spinner("Standardizing dictionary..."):
             standardized_dic = dictionary_standardization(raw_dic)
             if standardized_dic is not None:
-                st.session_state.standardized_dict = standardized_dic
-                st.success("Dictionary standardized successfully!")
+                        st.session_state.standardized_dict = standardized_dic
+                        msg = "Dictionary standardized successfully!"
+                        st.success(msg)
+                        st.session_state.messages.append(("success", msg))
 
-                st.write("Standardized Dictionary Preview:")
-                st.dataframe(standardized_dic.head())
+                        st.write("Standardized Dictionary Preview:")
+                        st.dataframe(standardized_dic.head())
             else:
-                st.error("Failed to standardize dictionary.")
+                        msg = "Failed to standardize dictionary."
+                        st.error(msg)
+                        st.session_state.messages.append(("error", msg))
 
 
 if st.session_state.standardized_dict is not None:
@@ -88,16 +92,19 @@ if st.session_state.standardized_dict is not None:
             st.session_state.colnames = colnames
             st.session_state.colspecs = colspecs
 
-            st.success("Fixed width file parsed successfully!")
+            msg = "Fixed width file parsed successfully!"
+            st.success(msg)
+            st.session_state.messages.append(("success", msg))
 
             st.write("**Column Names:**")
             st.write(colnames)
 
             st.write("**Column Specifications:**")
             st.write(colspecs)
-
         except Exception as e:
-            st.error(f"Error parsing fixed width file: {str(e)}")
+            msg = f"Error parsing fixed width file: {str(e)}"
+            st.error(msg)
+            st.session_state.messages.append(("error", msg))
 
 if st.session_state.standardized_dict is not None:
     st.subheader("Download Options")
@@ -110,3 +117,18 @@ if st.session_state.standardized_dict is not None:
     )
 
 show_session_state()
+
+with st.expander("Process Log", expanded=False):
+    messages = st.session_state.get("messages", [])
+    if messages:
+        for level, text in messages:
+            if level == "success":
+                st.success(text)
+            elif level == "error":
+                st.error(text)
+            elif level == "info":
+                st.info(text)
+            else:
+                st.write(text)
+    else:
+        st.write("No process messages yet.")

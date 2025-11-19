@@ -39,7 +39,6 @@ with st.expander("Instructions", expanded=True):
 
         - Make sure the URL is correct and public (not behind a login) when using the Internet option.
         - If Local files fail, check that the file types are allowed and the file is not corrupted.
-        - Try the sample example options ("Example Brazil Census 2010" or "Example Colombia Housing Survey 2021") to test the flow.
 
         This short guide uses simple language so anyone can follow it — even a beginner.
         """
@@ -54,7 +53,7 @@ if 'source_data' not in st.session_state:
 
 st.session_state.source_data = st.selectbox(
     "Choose data source",
-    ["Select an Option", "Internet (URL)", "Local file", "Example Brazil Census 2010", "Example Colombia Housing Survey 2021"],
+    ["Select an Option", "URL", "Local file"],
 )
 
 
@@ -108,7 +107,7 @@ def render_fwf_options():
 def render_extensions(detected_exts = ('.csv', '.zip')):
     extensions = st.multiselect(
         "File extensions to look for",
-        ['.csv', '.xls', '.xlsx', '.txt', '.sav', '.zip', '.7z', '.tar', '.gz', '.tgz'],
+        ('.csv', '.xls', '.xlsx', '.txt', '.sav', '.zip', '.7z', '.tar', '.gz', '.tgz'),
         default=detected_exts,
         key="extensions"
     )
@@ -179,12 +178,12 @@ elif st.session_state.source_data == "Local file":
 
     uploaded_files = st.file_uploader(
         "Choose file",
-        type=['csv', 'xlsx', 'xls', 'txt', 'sav', 'zip', '7z', 'tar', 'gz', 'tgz'],
+        type=('.csv', '.xlsx', '.xls', '.txt', '.sav', '.zip', '.7z', '.tar', '.gz', '.tgz'),
         accept_multiple_files=True,
         key="file_uploader"
     )
 
-    files_extensions = [os.path.splitext(f.name)[1].lower() for f in uploaded_files] if uploaded_files else []
+    files_extensions = list(dict.fromkeys([os.path.splitext(f.name)[1].lower() for f in uploaded_files])) if uploaded_files else []
     extensions = files_extensions
 
     extensions = render_extensions(extensions)
@@ -210,6 +209,9 @@ elif st.session_state.source_data == "Local file":
                 file_path = Path(st.session_state.temp_dir) / uploaded_file.name
                 with open(file_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
+
+            # Ensure extensions list has unique values before passing to Extractor
+            extensions = list(dict.fromkeys(extensions)) if extensions else []
 
             extractor = Extractor(
                 input_path=st.session_state.temp_dir,
