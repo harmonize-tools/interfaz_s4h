@@ -54,7 +54,7 @@ def add_logo():
                 background-image: url(""" + logo_url + """);
                 background-repeat: no-repeat;
                 padding-top: 120px;
-                background-size: 384px 67px;
+                background-size: 184px 67px;
             }
             [data-testid="stSidebarNav"]::before {
                 margin-left: 20px;

@@ -1,4 +1,6 @@
 import tempfile
+import io
+import zipfile
 from pathlib import Path
 
 import streamlit as st
@@ -287,6 +289,42 @@ with st.expander("Data Joining Options", expanded=False):
                 for i, df in enumerate(filtered_dask_dfs):
                     st.write(f"DataFrame {i + 1} shape: {len(df)} rows, {len(df.columns)} columns")
                     st.dataframe(df.head(5))
+
+                # Download buttons for each resulting DataFrame and a ZIP of all
+                try:
+                    for i, df in enumerate(filtered_dask_dfs):
+                        try:
+                            dfp = df.compute() if hasattr(df, "compute") else df
+                            csv_bytes = dfp.to_csv(index=False).encode("utf-8")
+                            st.download_button(
+                                label=f"Download DataFrame {i+1} as CSV",
+                                data=csv_bytes,
+                                file_name=f"dataframe_{i+1}.csv",
+                                mime="text/csv",
+                            )
+                        except Exception:
+                            st.warning(f"Unable to prepare CSV for DataFrame {i+1}")
+
+                    if len(filtered_dask_dfs) > 1:
+                        zip_buffer = io.BytesIO()
+                        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                            for i, df in enumerate(filtered_dask_dfs):
+                                try:
+                                    dfp = df.compute() if hasattr(df, "compute") else df
+                                    csv_data = dfp.to_csv(index=False).encode("utf-8")
+                                    zf.writestr(f"dataframe_{i+1}.csv", csv_data)
+                                except Exception:
+                                    # skip any problematic DF
+                                    pass
+                        zip_buffer.seek(0)
+                        st.download_button(
+                            label="Download all DataFrames as zip",
+                            data=zip_buffer.getvalue(),
+                            file_name="dataframes.zip",
+                            mime="application/zip",
+                        )
+                except Exception as e:
+                    st.warning(f"Could not create download buttons: {e}")
 
             except Exception as e:
                 st.error(f"Error during data selection: {e}")
